@@ -62,6 +62,13 @@ jobs:
 
       - name: Set container image and secrets (only for apply)
         if: ${{ github.event.inputs.action == 'apply' }}
+        env:
+          EXECUTION_ROLE_ARN: ${{ secrets.EXECUTION_ROLE_ARN }}
+          TASK_ROLE_ARN: ${{ secrets.TASK_ROLE_ARN }}
+          APP_KEYS: ${{ secrets.APP_KEYS }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
+          API_TOKEN_SALT: ${{ secrets.API_TOKEN_SALT }}
         run: |
           echo "container_image = \"${IMAGE_URI}\"" > image.auto.tfvars
           echo "execution_role_arn = \"${EXECUTION_ROLE_ARN}\"" >> image.auto.tfvars
@@ -70,13 +77,6 @@ jobs:
           echo "jwt_secret = \"${JWT_SECRET}\"" >> image.auto.tfvars
           echo "admin_jwt_secret = \"${ADMIN_JWT_SECRET}\"" >> image.auto.tfvars
           echo "api_token_salt = \"${API_TOKEN_SALT}\"" >> image.auto.tfvars
-        env:
-         EXECUTION_ROLE_ARN: ${{ secrets.EXECUTION_ROLE_ARN }}
-         TASK_ROLE_ARN: ${{ secrets.TASK_ROLE_ARN }}
-         APP_KEYS: ${{ secrets.APP_KEYS }}
-         JWT_SECRET: ${{ secrets.JWT_SECRET }}
-         ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
-         API_TOKEN_SALT: ${{ secrets.API_TOKEN_SALT }}
 
       - name: Debug generated tfvars
         if: ${{ github.event.inputs.action == 'apply' }}
