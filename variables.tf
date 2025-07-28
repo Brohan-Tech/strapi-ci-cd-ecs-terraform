@@ -4,18 +4,6 @@ variable "region" {
   default     = "us-east-2"
 }
 
-variable "aws_access_key" {
-  description = "AWS Access Key"
-  type        = string
-  sensitive   = true
-}
-
-variable "aws_secret_key" {
-  description = "AWS Secret Key"
-  type        = string
-  sensitive   = true
-}
-
 variable "execution_role_arn" {
   description = "ARN of the ECS execution role"
   type        = string
