@@ -42,4 +42,12 @@ jobs:
       - name: Output Image URI
         run: |
           echo "Pushed image to ECR: ${{ env.IMAGE_URI }}"
+      
+      - name: Save Docker Image URI
+        run: echo "${{ env.IMAGE_URI }}" > image-uri.txt
 
+      - name: Upload Docker Image URI Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-uri
+          path: image-uri.txt

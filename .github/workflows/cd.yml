@@ -24,6 +24,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+       - name: Download Image URI Artifact from CI
+        uses: actions/download-artifact@v4
+        with:
+          name: image-uri
+
+      - name: Read Image URI
+        id: image
+        run: echo "IMAGE_URI=$(cat image-uri.txt)" >> $GITHUB_ENV
+
+      - name: Echo for Debug
+        run: echo "Using Image URI: $IMAGE_URI"
+
       - name: Checkout Code
         uses: actions/checkout@v4
 
