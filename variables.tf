@@ -4,7 +4,7 @@ variable "aws_region" {
   default     = "us-east-2"
 }
 
-variable "image_uri" {
+variable "container_image" {
   description = "Docker image URI for Strapi"
   type        = string
 }
