@@ -42,3 +42,4 @@ jobs:
 
       - name: Output Image URI
         run: echo "Pushed image to ECR: ${{ env.IMAGE_URI }}"
+
