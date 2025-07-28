@@ -1,20 +1,21 @@
 variable "aws_region" {
-  description = "AWS region to deploy to"
+  description = "AWS region"
+  type        = string
   default     = "us-east-2"
 }
 
-variable "container_image" {
-  description = "Docker image URI for Strapi"
-  type        = string
-}
-
 variable "execution_role_arn" {
-  description = "IAM role ARN for ECS execution"
+  description = "IAM Role ARN for ECS task execution"
   type        = string
 }
 
 variable "task_role_arn" {
-  description = "IAM role ARN for ECS task"
+  description = "IAM Role ARN for the ECS task"
+  type        = string
+}
+
+variable "container_image" {
+  description = "Docker image URI for Strapi"
   type        = string
 }
 

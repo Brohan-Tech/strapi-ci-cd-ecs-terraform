@@ -6,11 +6,16 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
+}
+
+data "aws_subnet" "first" {
+  id = data.aws_subnet_ids.default.ids[0]
+}
+
+data "aws_subnet" "second" {
+  id = data.aws_subnet_ids.default.ids[1]
 }
 
 resource "aws_ecs_cluster" "strapi" {
@@ -34,10 +39,12 @@ resource "aws_ecs_task_definition" "strapi" {
   container_definitions = jsonencode([{
     name      = "strapi"
     image     = var.container_image
-    portMappings = [{
-      containerPort = 1337
-      hostPort      = 1337
-    }]
+    portMappings = [
+      {
+        containerPort = 1337
+        hostPort      = 1337
+      }
+    ]
     environment = [
       { name = "APP_KEYS", value = var.app_keys },
       { name = "API_TOKEN_SALT", value = var.api_token_salt },
@@ -86,7 +93,7 @@ resource "aws_lb" "strapi" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = data.aws_subnets.default.ids
+  subnets            = [data.aws_subnet.first.id, data.aws_subnet.second.id]
 }
 
 resource "aws_lb_target_group" "strapi" {
@@ -124,7 +131,7 @@ resource "aws_ecs_service" "strapi" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = data.aws_subnets.default.ids
+    subnets          = [data.aws_subnet.first.id, data.aws_subnet.second.id]
     assign_public_ip = true
     security_groups  = [aws_security_group.alb_sg.id]
   }

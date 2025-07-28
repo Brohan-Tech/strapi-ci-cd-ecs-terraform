@@ -1,29 +1,21 @@
 output "strapi_url" {
-  description = "Public URL to access Strapi"
-  value       = "http://${aws_lb.strapi.dns_name}:1337"
+  description = "Public URL of the deployed Strapi application"
+  value       = "http://${aws_lb.strapi.dns_name}"
 }
 
-output "log_group_name" {
-  value = aws_cloudwatch_log_group.strapi.name
-}
-
-output "cluster_name" {
-  value = aws_ecs_cluster.strapi.name
-}
-
-output "service_name" {
+output "ecs_service_name" {
   value = aws_ecs_service.strapi.name
 }
 
-output "cpu_alarm_arn" {
-  value = aws_cloudwatch_metric_alarm.cpu_high.arn
+output "ecs_cluster_name" {
+  value = aws_ecs_cluster.strapi.name
 }
 
-output "memory_alarm_arn" {
-  value = aws_cloudwatch_metric_alarm.memory_high.arn
+output "alb_dns" {
+  value = aws_lb.strapi.dns_name
 }
 
-output "dashboard_name" {
-  value = aws_cloudwatch_dashboard.strapi.dashboard_name
+output "cloudwatch_log_group" {
+  value = aws_cloudwatch_log_group.strapi.name
 }
 
