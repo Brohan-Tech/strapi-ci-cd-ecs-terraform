@@ -23,10 +23,12 @@ resource "aws_ecs_task_definition" "strapi" {
   container_definitions = jsonencode([{
     name      = "strapi"
     image     = var.container_image
-    portMappings = [{
-      containerPort = 1337
-      hostPort      = 1337
-    }]
+    portMappings = [
+      {
+        containerPort = 1337
+        hostPort      = 1337
+      }
+    ]
     environment = [
       { name = "APP_KEYS", value = var.app_keys },
       { name = "API_TOKEN_SALT", value = var.api_token_salt },
