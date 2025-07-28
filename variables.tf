@@ -1,3 +1,9 @@
+variable "region" {
+  description = "AWS region to deploy into"
+  type        = string
+  default     = "us-east-2"
+}
+
 variable "aws_access_key" {
   description = "AWS Access Key"
   type        = string
@@ -10,63 +16,42 @@ variable "aws_secret_key" {
   sensitive   = true
 }
 
-variable "region" {
-  description = "AWS region"
+variable "execution_role_arn" {
+  description = "ARN of the ECS execution role"
   type        = string
-  default     = "us-east-2"
+}
+
+variable "task_role_arn" {
+  description = "ARN of the ECS task role"
+  type        = string
 }
 
 variable "container_image" {
-  description = "Docker image URL for the Strapi application"
+  description = "Docker image URI for Strapi app"
   type        = string
 }
 
 variable "app_keys" {
-  description = "Strapi application keys"
+  description = "Strapi APP_KEYS"
   type        = string
   sensitive   = true
 }
 
 variable "admin_jwt_secret" {
-  description = "Strapi admin JWT secret"
+  description = "Strapi ADMIN_JWT_SECRET"
   type        = string
   sensitive   = true
 }
 
 variable "jwt_secret" {
-  description = "Strapi user JWT secret"
+  description = "Strapi JWT_SECRET"
   type        = string
   sensitive   = true
 }
 
 variable "api_token_salt" {
-  description = "Strapi API token salt"
+  description = "Strapi API_TOKEN_SALT"
   type        = string
   sensitive   = true
-}
-
-variable "task_role_arn" {
-  description = "IAM role ARN for the ECS task"
-  type        = string
-}
-
-variable "execution_role_arn" {
-  description = "IAM role ARN for ECS task execution"
-  type        = string
-}
-
-variable "alarm_email" {
-  description = "Email address for CloudWatch alarm notifications"
-  type        = string
-}
-
-variable "subnet_ids" {
-  description = "List of subnet IDs for ECS networking"
-  type        = list(string)
-}
-
-variable "vpc_id" {
-  description = "VPC ID for ECS networking"
-  type        = string
 }
 
