@@ -1,25 +1,25 @@
-output "alb_dns_name" {
-  description = "The DNS name of the load balancer"
-  value       = aws_lb.rohana-strapi-alb.dns_name
+output "rohana_alb_dns_name" {
+  value = aws_lb.rohana_alb.dns_name
+  description = "DNS name of the ALB"
 }
 
-output "cloudwatch_log_group_name" {
+output "rohana_log_group_name" {
+  value = aws_cloudwatch_log_group.rohana_strapi_log_group.name
   description = "CloudWatch log group name"
-  value       = aws_cloudwatch_log_group.rohana-strapi-logs.name
 }
 
-output "cloudwatch_dashboard_url" {
-  description = "CloudWatch dashboard URL"
+output "rohana_dashboard_url" {
   value       = "https://${var.region}.console.aws.amazon.com/cloudwatch/home?region=${var.region}#dashboards:name=rohana-strapi-dashboard"
+  description = "CloudWatch dashboard URL"
 }
 
-output "cpu_alarm_name" {
-  description = "CloudWatch alarm name for high CPU usage"
-  value       = aws_cloudwatch_metric_alarm.rohana-high-cpu-alarm.name
+output "rohana_cpu_alarm_name" {
+  value = aws_cloudwatch_metric_alarm.rohana_high_cpu_alarm.alarm_name
+  description = "Name of the high CPU alarm"
 }
 
-output "memory_alarm_name" {
-  description = "CloudWatch alarm name for high memory usage"
-  value       = aws_cloudwatch_metric_alarm.rohana-high-memory-alarm.name
+output "rohana_memory_alarm_name" {
+  value = aws_cloudwatch_metric_alarm.rohana_high_memory_alarm.alarm_name
+  description = "Name of the high memory alarm"
 }
 
