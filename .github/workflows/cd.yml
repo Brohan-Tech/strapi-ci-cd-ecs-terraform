@@ -67,8 +67,8 @@ jobs:
           echo 'jwt_secret = "${JWT_SECRET}"' >> image.auto.tfvars
           echo 'admin_jwt_secret = "${ADMIN_JWT_SECRET}"' >> image.auto.tfvars
           echo 'api_token_salt = "${API_TOKEN_SALT}"' >> image.auto.tfvars
-          echo 'vpc_id = "${{ env.VPC_ID }}"' >> image.auto.tfvars
-          echo 'subnet_ids = ${SUBNET_IDS}' >> image.auto.tfvars
+          echo 'vpc_id = "vpc-0ee59f79963ca2b06"' >> image.auto.tfvars
+          echo 'subnet_ids = ["subnet-04351d9d8a76a3567", "subnet-0a45b9f55f7cfc3f2"]' >> image.auto.tfvars
 
       - name: Terraform Plan
         if: ${{ github.event.inputs.action == 'apply' }}
