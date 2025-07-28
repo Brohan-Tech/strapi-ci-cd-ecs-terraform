@@ -2,34 +2,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-# 🧠 Get default VPC and subnets
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
-data "aws_subnet" "all" {
-  for_each = toset(data.aws_subnets.default.ids)
-  id       = each.key
-}
-
-# ✅ Select max 2 subnets from different AZs
-locals {
-  unique_subnets_by_az = {
-    for az, subnet in {
-      for s in data.aws_subnet.all : s.availability_zone => s
-    } : az => subnet.id
-  }
-
-  subnet_ids = slice(values(local.unique_subnets_by_az), 0, 2)
-}
-
 resource "aws_ecs_cluster" "strapi" {
   name = "rohana-strapi-cluster"
 }
@@ -51,12 +23,10 @@ resource "aws_ecs_task_definition" "strapi" {
   container_definitions = jsonencode([{
     name      = "strapi"
     image     = var.container_image
-    portMappings = [
-      {
-        containerPort = 1337
-        hostPort      = 1337
-      }
-    ]
+    portMappings = [{
+      containerPort = 1337
+      hostPort      = 1337
+    }]
     environment = [
       { name = "APP_KEYS", value = var.app_keys },
       { name = "API_TOKEN_SALT", value = var.api_token_salt },
@@ -76,7 +46,7 @@ resource "aws_ecs_task_definition" "strapi" {
 
 resource "aws_security_group" "alb_sg" {
   name   = "rohana-strapi-alb-sg"
-  vpc_id = data.aws_vpc.default.id
+  vpc_id = var.vpc_id
 
   ingress {
     from_port   = 80
@@ -105,7 +75,7 @@ resource "aws_lb" "strapi" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = local.subnet_ids
+  subnets            = var.public_subnet_ids
 }
 
 resource "aws_lb_target_group" "strapi" {
@@ -113,7 +83,7 @@ resource "aws_lb_target_group" "strapi" {
   port        = 1337
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = var.vpc_id
 
   health_check {
     path                = "/"
@@ -143,7 +113,7 @@ resource "aws_ecs_service" "strapi" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = local.subnet_ids
+    subnets          = var.public_subnet_ids
     assign_public_ip = true
     security_groups  = [aws_security_group.alb_sg.id]
   }
