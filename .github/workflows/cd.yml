@@ -1,10 +1,10 @@
-name: CD - Terraform IaC
+name: CD - Terraform Deployment
 
 on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'Terraform Action (apply or destroy)'
+        description: 'Terraform action (apply/destroy)'
         required: true
         default: 'apply'
         type: choice
@@ -12,19 +12,17 @@ on:
           - apply
           - destroy
       image_uri:
-        description: 'Docker image URI (optional if downloaded from CI)'
+        description: 'Docker image URI (from CI or custom)'
         required: false
 
 env:
   AWS_REGION: us-east-2
 
 jobs:
-  terraform:
-    name: Terraform Provisioning
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Terraform
@@ -37,30 +35,24 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Download Image URI Artifact from CI
+      - name: Get image URI from artifact (if not provided)
         if: ${{ github.event.inputs.image_uri == '' && github.event.inputs.action == 'apply' }}
         uses: actions/download-artifact@v4
         with:
           name: image-uri
 
-      - name: Read Image URI from artifact
+      - name: Set IMAGE_URI from artifact
         if: ${{ github.event.inputs.image_uri == '' && github.event.inputs.action == 'apply' }}
-        run: |
-          echo "IMAGE_URI=$(cat image-uri.txt)" >> $GITHUB_ENV
+        run: echo "IMAGE_URI=$(cat image-uri.txt)" >> $GITHUB_ENV
 
       - name: Set IMAGE_URI from input
         if: ${{ github.event.inputs.image_uri != '' && github.event.inputs.action == 'apply' }}
-        run: |
-          echo "IMAGE_URI=${{ github.event.inputs.image_uri }}" >> $GITHUB_ENV
-
-      - name: Echo Final Image URI
-        if: ${{ github.event.inputs.action == 'apply' }}
-        run: echo "Final Image URI: $IMAGE_URI"
+        run: echo "IMAGE_URI=${{ github.event.inputs.image_uri }}" >> $GITHUB_ENV
 
       - name: Terraform Init
         run: terraform init
 
-      - name: Set container image and secrets (only for apply)
+      - name: Generate image.auto.tfvars
         if: ${{ github.event.inputs.action == 'apply' }}
         env:
           EXECUTION_ROLE_ARN: ${{ secrets.EXECUTION_ROLE_ARN }}
@@ -77,10 +69,6 @@ jobs:
           echo "jwt_secret = \"${JWT_SECRET}\"" >> image.auto.tfvars
           echo "admin_jwt_secret = \"${ADMIN_JWT_SECRET}\"" >> image.auto.tfvars
           echo "api_token_salt = \"${API_TOKEN_SALT}\"" >> image.auto.tfvars
-
-      - name: Debug generated tfvars
-        if: ${{ github.event.inputs.action == 'apply' }}
-        run: cat image.auto.tfvars
 
       - name: Terraform Plan
         if: ${{ github.event.inputs.action == 'apply' }}
