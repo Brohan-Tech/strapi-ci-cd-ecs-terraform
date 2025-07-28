@@ -43,13 +43,3 @@ variable "jwt_secret" {
   sensitive   = true
 }
 
-variable "vpc_id" {
-  description = "Custom VPC ID"
-  type        = string
-}
-
-variable "public_subnet_ids" {
-  description = "List of public subnet IDs from custom VPC"
-  type        = list(string)
-}
-
