@@ -2,9 +2,15 @@ provider "aws" {
   region = var.aws_region
 }
 
-locals {
-  vpc_id     = var.vpc_id
-  subnet_ids = var.subnet_ids
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
 resource "aws_ecs_cluster" "strapi" {
@@ -51,7 +57,7 @@ resource "aws_ecs_task_definition" "strapi" {
 
 resource "aws_security_group" "alb_sg" {
   name   = "rohana-strapi-alb-sg"
-  vpc_id = local.vpc_id
+  vpc_id = data.aws_vpc.default.id
 
   ingress {
     from_port   = 1337
@@ -73,7 +79,7 @@ resource "aws_lb" "strapi" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = local.subnet_ids
+  subnets            = data.aws_subnets.default.ids
 }
 
 resource "aws_lb_target_group" "strapi" {
@@ -81,7 +87,7 @@ resource "aws_lb_target_group" "strapi" {
   port        = 1337
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = local.vpc_id
+  vpc_id      = data.aws_vpc.default.id
 
   health_check {
     path                = "/"
@@ -111,9 +117,9 @@ resource "aws_ecs_service" "strapi" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = local.subnet_ids
+    subnets          = data.aws_subnets.default.ids
     assign_public_ip = true
-    security_groups = [aws_security_group.alb_sg.id]
+    security_groups  = [aws_security_group.alb_sg.id]
   }
 
   load_balancer {
@@ -123,7 +129,7 @@ resource "aws_ecs_service" "strapi" {
   }
 
   desired_count = 1
-  depends_on = [aws_lb_listener.strapi]
+  depends_on    = [aws_lb_listener.strapi]
 }
 
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {

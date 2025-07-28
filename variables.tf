@@ -9,16 +9,6 @@ variable "container_image" {
   type        = string
 }
 
-variable "subnet_ids" {
-  description = "List of Subnet IDs for ECS Tasks"
-  type        = list(string)
-}
-
-variable "vpc_id" {
-  description = "VPC ID for the ALB"
-  type        = string
-}
-
 variable "execution_role_arn" {
   description = "ARN of the ECS Task Execution Role"
   type        = string
