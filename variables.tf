@@ -1,45 +1,51 @@
-variable "region" {
-  description = "AWS region to deploy into"
+variable "container_image" {
+  description = "Docker image URI for the ECS task"
   type        = string
-  default     = "us-east-2"
 }
 
 variable "execution_role_arn" {
-  description = "ARN of the ECS execution role"
+  description = "IAM role ARN for ECS task execution"
   type        = string
 }
 
 variable "task_role_arn" {
-  description = "ARN of the ECS task role"
-  type        = string
-}
-
-variable "container_image" {
-  description = "Docker image URI for Strapi app"
+  description = "IAM role ARN for the ECS task"
   type        = string
 }
 
 variable "app_keys" {
-  description = "Strapi APP_KEYS"
-  type        = string
-  sensitive   = true
-}
-
-variable "admin_jwt_secret" {
-  description = "Strapi ADMIN_JWT_SECRET"
+  description = "Strapi app keys"
   type        = string
   sensitive   = true
 }
 
 variable "jwt_secret" {
-  description = "Strapi JWT_SECRET"
+  description = "JWT secret for Strapi"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_jwt_secret" {
+  description = "Admin JWT secret for Strapi"
   type        = string
   sensitive   = true
 }
 
 variable "api_token_salt" {
-  description = "Strapi API_TOKEN_SALT"
+  description = "API token salt for Strapi"
   type        = string
   sensitive   = true
+}
+
+variable "vpc_id" {
+  description = "VPC ID where resources will be deployed"
+  type        = string
+  default     = "vpc-0dfdf2a662bda32e0"
+}
+
+variable "subnet_ids" {
+  description = "List of subnet IDs for ECS service"
+  type        = list(string)
+  default     = ["subnet-0a4a4b2ce473cdb14", "subnet-08d41418e6920632f"]
 }
 
