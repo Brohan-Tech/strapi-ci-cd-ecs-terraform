@@ -55,7 +55,7 @@ jobs:
 
       - name: Echo Final Image URI
         if: ${{ github.event.inputs.action == 'apply' }}
-        run: echo "Final Image URI being used: $IMAGE_URI"
+        run: echo "Final Image URI being used: ${{ env.IMAGE_URI }}"
 
       - name: Terraform Init
         run: terraform init
@@ -63,20 +63,13 @@ jobs:
       - name: Set container image and secrets (only for apply)
         if: ${{ github.event.inputs.action == 'apply' }}
         run: |
-          echo "container_image     = \"$IMAGE_URI\"" > image.auto.tfvars
-          echo "execution_role_arn  = \"${EXECUTION_ROLE_ARN}\"" >> image.auto.tfvars
-          echo "task_role_arn       = \"${TASK_ROLE_ARN}\"" >> image.auto.tfvars
-          echo "app_keys            = \"${APP_KEYS}\"" >> image.auto.tfvars
-          echo "jwt_secret          = \"${JWT_SECRET}\"" >> image.auto.tfvars
-          echo "admin_jwt_secret    = \"${ADMIN_JWT_SECRET}\"" >> image.auto.tfvars
-          echo "api_token_salt      = \"${API_TOKEN_SALT}\"" >> image.auto.tfvars
-        env:
-          EXECUTION_ROLE_ARN: ${{ secrets.EXECUTION_ROLE_ARN }}
-          TASK_ROLE_ARN: ${{ secrets.TASK_ROLE_ARN }}
-          APP_KEYS: ${{ secrets.APP_KEYS }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
-          API_TOKEN_SALT: ${{ secrets.API_TOKEN_SALT }}
+          echo "container_image     = \"${{ env.IMAGE_URI }}\"" > image.auto.tfvars
+          echo "execution_role_arn  = \"${{ secrets.EXECUTION_ROLE_ARN }}\"" >> image.auto.tfvars
+          echo "task_role_arn       = \"${{ secrets.TASK_ROLE_ARN }}\"" >> image.auto.tfvars
+          echo "app_keys            = \"${{ secrets.APP_KEYS }}\"" >> image.auto.tfvars
+          echo "jwt_secret          = \"${{ secrets.JWT_SECRET }}\"" >> image.auto.tfvars
+          echo "admin_jwt_secret    = \"${{ secrets.ADMIN_JWT_SECRET }}\"" >> image.auto.tfvars
+          echo "api_token_salt      = \"${{ secrets.API_TOKEN_SALT }}\"" >> image.auto.tfvars
 
       - name: Terraform Plan
         if: ${{ github.event.inputs.action == 'apply' }}
