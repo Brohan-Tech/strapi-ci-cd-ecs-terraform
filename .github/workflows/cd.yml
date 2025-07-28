@@ -12,7 +12,7 @@ on:
           - apply
           - destroy
       image_uri:
-        description: 'Docker image URI (required for apply)'
+        description: 'Docker image URI (optional if downloaded from CI)'
         required: false
 
 env:
@@ -24,18 +24,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download Image URI Artifact from CI
-        uses: actions/download-artifact@v4
-        with:
-          name: image-uri
-
-      - name: Read Image URI
-        id: image
-        run: echo "IMAGE_URI=$(cat image-uri.txt)" >> $GITHUB_ENV
-
-      - name: Echo for Debug
-        run: echo "Using Image URI: $IMAGE_URI"
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -49,14 +37,33 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Download Image URI Artifact from CI
+        if: ${{ inputs.image_uri == '' && inputs.action == 'apply' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: image-uri
+
+      - name: Read Image URI
+        if: ${{ inputs.image_uri == '' && inputs.action == 'apply' }}
+        id: image_fallback
+        run: echo "IMAGE_URI=$(cat image-uri.txt)" >> $GITHUB_ENV
+
+      - name: Set IMAGE_URI from input (if provided)
+        if: ${{ inputs.image_uri != '' && inputs.action == 'apply' }}
+        run: echo "IMAGE_URI=${{ inputs.image_uri }}" >> $GITHUB_ENV
+
+      - name: Echo Final Image URI
+        if: ${{ inputs.action == 'apply' }}
+        run: echo "Final Image URI being used: $IMAGE_URI"
+
       - name: Terraform Init
         run: terraform init
 
       - name: Set container image and secrets (only for apply)
-        if: ${{ inputs.action == 'apply' && inputs.image_uri != '' }}
+        if: ${{ inputs.action == 'apply' }}
         run: |
           cat <<EOF > image.auto.tfvars
-          container_image     = "${{ inputs.image_uri }}"
+          container_image     = "$IMAGE_URI"
           execution_role_arn  = "${{ secrets.EXECUTION_ROLE_ARN }}"
           task_role_arn       = "${{ secrets.TASK_ROLE_ARN }}"
           app_keys            = "${{ secrets.APP_KEYS }}"
