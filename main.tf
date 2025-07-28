@@ -60,6 +60,13 @@ resource "aws_security_group" "alb_sg" {
   vpc_id = data.aws_vpc.default.id
 
   ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 1337
     to_port     = 1337
     protocol    = "tcp"
@@ -99,9 +106,9 @@ resource "aws_lb_target_group" "strapi" {
   }
 }
 
-resource "aws_lb_listener" "strapi" {
+resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.strapi.arn
-  port              = 1337
+  port              = 80
   protocol          = "HTTP"
 
   default_action {
@@ -129,7 +136,7 @@ resource "aws_ecs_service" "strapi" {
   }
 
   desired_count = 1
-  depends_on    = [aws_lb_listener.strapi]
+  depends_on    = [aws_lb_listener.http]
 }
 
 resource "aws_cloudwatch_metric_alarm" "cpu_high" {

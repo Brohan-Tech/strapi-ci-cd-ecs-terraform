@@ -1,6 +1,5 @@
 variable "aws_region" {
-  description = "AWS Region"
-  type        = string
+  description = "AWS region to deploy to"
   default     = "us-east-2"
 }
 
@@ -10,12 +9,12 @@ variable "container_image" {
 }
 
 variable "execution_role_arn" {
-  description = "ARN of the ECS Task Execution Role"
+  description = "IAM role ARN for ECS execution"
   type        = string
 }
 
 variable "task_role_arn" {
-  description = "ARN of the ECS Task Role"
+  description = "IAM role ARN for ECS task"
   type        = string
 }
 

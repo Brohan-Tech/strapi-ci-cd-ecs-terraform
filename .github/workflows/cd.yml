@@ -77,4 +77,8 @@ jobs:
       - name: Terraform Destroy
         if: ${{ github.event.inputs.action == 'destroy' }}
         run: terraform destroy -auto-approve
-
+        env:
+          TF_VAR_admin_jwt_secret: ${{ secrets.ADMIN_JWT_SECRET }}
+          TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+          TF_VAR_app_keys: ${{ secrets.APP_KEYS }}
+          TF_VAR_api_token_salt: ${{ secrets.API_TOKEN_SALT }}
