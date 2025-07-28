@@ -2,53 +2,83 @@ provider "aws" {
   region = var.aws_region
 }
 
-resource "aws_ecs_cluster" "strapi" {
+# VPC 
+resource "aws_vpc" "rohana_vpc" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "rohana-vpc"
+  }
+}
+
+resource "aws_internet_gateway" "rohana_igw" {
+  vpc_id = aws_vpc.rohana_vpc.id
+
+  tags = {
+    Name = "rohana-igw"
+  }
+}
+
+resource "aws_subnet" "rohana_public_a" {
+  vpc_id                  = aws_vpc.rohana_vpc.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-2a"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "rohana-public-subnet-a"
+  }
+}
+
+resource "aws_subnet" "rohana_public_b" {
+  vpc_id                  = aws_vpc.rohana_vpc.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-2b"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "rohana-public-subnet-b"
+  }
+}
+
+resource "aws_route_table" "rohana_public_rt" {
+  vpc_id = aws_vpc.rohana_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.rohana_igw.id
+  }
+
+  tags = {
+    Name = "rohana-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "rohana_assoc_a" {
+  subnet_id      = aws_subnet.rohana_public_a.id
+  route_table_id = aws_route_table.rohana_public_rt.id
+}
+
+resource "aws_route_table_association" "rohana_assoc_b" {
+  subnet_id      = aws_subnet.rohana_public_b.id
+  route_table_id = aws_route_table.rohana_public_rt.id
+}
+
+# ECS & Networking
+resource "aws_ecs_cluster" "rohana_strapi_cluster" {
   name = "rohana-strapi-cluster"
 }
 
-resource "aws_cloudwatch_log_group" "strapi" {
+resource "aws_cloudwatch_log_group" "rohana_strapi_logs" {
   name              = "/ecs/rohana-strapi"
   retention_in_days = 7
 }
 
-resource "aws_ecs_task_definition" "strapi" {
-  family                   = "rohana-strapi-task"
-  requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
-  cpu                      = "256"
-  memory                   = "512"
-  execution_role_arn       = var.execution_role_arn
-  task_role_arn            = var.task_role_arn
-
-  container_definitions = jsonencode([{
-    name      = "strapi"
-    image     = var.container_image
-    portMappings = [
-      {
-        containerPort = 1337
-        hostPort      = 1337
-      }
-    ]
-    environment = [
-      { name = "APP_KEYS", value = var.app_keys },
-      { name = "API_TOKEN_SALT", value = var.api_token_salt },
-      { name = "ADMIN_JWT_SECRET", value = var.admin_jwt_secret },
-      { name = "JWT_SECRET", value = var.jwt_secret }
-    ]
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = aws_cloudwatch_log_group.strapi.name
-        awslogs-region        = var.aws_region
-        awslogs-stream-prefix = "ecs"
-      }
-    }
-  }])
-}
-
-resource "aws_security_group" "alb_sg" {
+resource "aws_security_group" "rohana_alb_sg" {
   name   = "rohana-strapi-alb-sg"
-  vpc_id = var.vpc_id
+  vpc_id = aws_vpc.rohana_vpc.id
 
   ingress {
     from_port   = 80
@@ -72,20 +102,20 @@ resource "aws_security_group" "alb_sg" {
   }
 }
 
-resource "aws_lb" "strapi" {
+resource "aws_lb" "rohana_strapi_alb" {
   name               = "rohana-strapi-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = var.public_subnet_ids
+  security_groups    = [aws_security_group.rohana_alb_sg.id]
+  subnets            = [aws_subnet.rohana_public_a.id, aws_subnet.rohana_public_b.id]
 }
 
-resource "aws_lb_target_group" "strapi" {
+resource "aws_lb_target_group" "rohana_strapi_tg" {
   name        = "rohana-strapi-tg"
   port        = 1337
   protocol    = "HTTP"
   target_type = "ip"
-  vpc_id      = var.vpc_id
+  vpc_id      = aws_vpc.rohana_vpc.id
 
   health_check {
     path                = "/"
@@ -97,107 +127,84 @@ resource "aws_lb_target_group" "strapi" {
   }
 }
 
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.strapi.arn
+resource "aws_lb_listener" "rohana_http" {
+  load_balancer_arn = aws_lb.rohana_strapi_alb.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.strapi.arn
+    target_group_arn = aws_lb_target_group.rohana_strapi_tg.arn
   }
 }
 
-resource "aws_ecs_service" "strapi" {
+resource "aws_ecs_task_definition" "rohana_strapi_task" {
+  family                   = "rohana-strapi-task"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
+
+  container_definitions = jsonencode([{
+    name      = "strapi"
+    image     = var.container_image
+    portMappings = [{
+      containerPort = 1337
+      hostPort      = 1337
+    }]
+    environment = [
+      { name = "APP_KEYS", value = var.app_keys },
+      { name = "API_TOKEN_SALT", value = var.api_token_salt },
+      { name = "ADMIN_JWT_SECRET", value = var.admin_jwt_secret },
+      { name = "JWT_SECRET", value = var.jwt_secret }
+    ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.rohana_strapi_logs.name
+        awslogs-region        = var.aws_region
+        awslogs-stream-prefix = "ecs"
+      }
+    }
+  }])
+}
+
+resource "aws_ecs_service" "rohana_strapi_service" {
   name            = "rohana-strapi-service"
-  cluster         = aws_ecs_cluster.strapi.id
-  task_definition = aws_ecs_task_definition.strapi.arn
+  cluster         = aws_ecs_cluster.rohana_strapi_cluster.id
+  task_definition = aws_ecs_task_definition.rohana_strapi_task.arn
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = var.public_subnet_ids
+    subnets          = [aws_subnet.rohana_public_a.id, aws_subnet.rohana_public_b.id]
     assign_public_ip = true
-    security_groups  = [aws_security_group.alb_sg.id]
+    security_groups  = [aws_security_group.rohana_alb_sg.id]
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.strapi.arn
+    target_group_arn = aws_lb_target_group.rohana_strapi_tg.arn
     container_name   = "strapi"
     container_port   = 1337
   }
 
   desired_count = 1
-  depends_on    = [aws_lb_listener.http]
+  depends_on    = [aws_lb_listener.rohana_http]
 }
 
-resource "aws_cloudwatch_metric_alarm" "cpu_high" {
-  alarm_name          = "rohana-strapi-high-cpu"
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "HighCPUUtilization"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/ECS"
   period              = 60
   statistic           = "Average"
-  threshold           = 80
-  alarm_description   = "Alarm when CPU exceeds 80%"
+  threshold           = 75
+  alarm_description   = "Alarm if CPU exceeds 75%"
   dimensions = {
-    ClusterName = aws_ecs_cluster.strapi.name
-    ServiceName = aws_ecs_service.strapi.name
+    ClusterName = aws_ecs_cluster.rohana_strapi_cluster.name
+    ServiceName = aws_ecs_service.rohana_strapi_service.name
   }
 }
-
-resource "aws_cloudwatch_metric_alarm" "memory_high" {
-  alarm_name          = "rohana-strapi-high-memory"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "MemoryUtilization"
-  namespace           = "AWS/ECS"
-  period              = 60
-  statistic           = "Average"
-  threshold           = 80
-  alarm_description   = "Alarm when Memory exceeds 80%"
-  dimensions = {
-    ClusterName = aws_ecs_cluster.strapi.name
-    ServiceName = aws_ecs_service.strapi.name
-  }
-}
-
-resource "aws_cloudwatch_dashboard" "strapi" {
-  dashboard_name = "rohana-strapi-dashboard"
-
-  dashboard_body = jsonencode({
-    widgets = [
-      {
-        type = "metric"
-        x    = 0
-        y    = 0
-        width = 12
-        height = 6
-        properties = {
-          metrics = [
-            [ "AWS/ECS", "CPUUtilization", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name ]
-          ]
-          title = "Strapi CPU Utilization"
-          period = 60
-          stat   = "Average"
-        }
-      },
-      {
-        type = "metric"
-        x    = 0
-        y    = 6
-        width = 12
-        height = 6
-        properties = {
-          metrics = [
-            [ "AWS/ECS", "MemoryUtilization", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name ]
-          ]
-          title = "Strapi Memory Utilization"
-          period = 60
-          stat   = "Average"
-        }
-      }
-    ]
-  })
-}
-
