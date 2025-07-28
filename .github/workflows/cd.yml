@@ -44,13 +44,13 @@ jobs:
         if: ${{ inputs.action == 'apply' && inputs.image_uri != '' }}
         run: |
           cat <<EOF > image.auto.tfvars
-          container_image = "${{ inputs.image_uri }}"
-          execution_role_arn = "${{ secrets.EXECUTION_ROLE_ARN }}"
-          task_role_arn      = "${{ secrets.TASK_ROLE_ARN }}"
-          app_keys           = "${{ secrets.APP_KEYS }}"
-          jwt_secret         = "${{ secrets.JWT_SECRET }}"
-          admin_jwt_secret   = "${{ secrets.ADMIN_JWT_SECRET }}"
-          api_token_salt     = "${{ secrets.API_TOKEN_SALT }}"
+          container_image     = "${{ inputs.image_uri }}"
+          execution_role_arn  = "${{ secrets.EXECUTION_ROLE_ARN }}"
+          task_role_arn       = "${{ secrets.TASK_ROLE_ARN }}"
+          app_keys            = "${{ secrets.APP_KEYS }}"
+          jwt_secret          = "${{ secrets.JWT_SECRET }}"
+          admin_jwt_secret    = "${{ secrets.ADMIN_JWT_SECRET }}"
+          api_token_salt      = "${{ secrets.API_TOKEN_SALT }}"
           EOF
 
       - name: Terraform Plan
@@ -64,3 +64,4 @@ jobs:
       - name: Terraform Destroy
         if: ${{ inputs.action == 'destroy' }}
         run: terraform destroy -auto-approve
+
