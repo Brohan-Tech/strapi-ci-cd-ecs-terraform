@@ -45,11 +45,13 @@ jobs:
 
       - name: Read Image URI from artifact
         if: ${{ github.event.inputs.image_uri == '' && github.event.inputs.action == 'apply' }}
-        run: echo "IMAGE_URI=$(cat image-uri.txt)" >> $GITHUB_ENV
+        run: |
+          echo "IMAGE_URI=$(cat image-uri.txt)" >> $GITHUB_ENV
 
       - name: Set IMAGE_URI from input
         if: ${{ github.event.inputs.image_uri != '' && github.event.inputs.action == 'apply' }}
-        run: echo "IMAGE_URI=${{ github.event.inputs.image_uri }}" >> $GITHUB_ENV
+        run: |
+          echo "IMAGE_URI=${{ github.event.inputs.image_uri }}" >> $GITHUB_ENV
 
       - name: Echo Final Image URI
         if: ${{ github.event.inputs.action == 'apply' }}
