@@ -1,0 +1,66 @@
+name: CD - Terraform IaC
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform Action (apply or destroy)'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
+      image_uri:
+        description: 'Docker image URI (required for apply)'
+        required: false
+
+env:
+  AWS_REGION: us-east-2
+
+jobs:
+  terraform:
+    name: Terraform Provisioning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Set container image and secrets (only for apply)
+        if: ${{ inputs.action == 'apply' && inputs.image_uri != '' }}
+        run: |
+          cat <<EOF > image.auto.tfvars
+          container_image = "${{ inputs.image_uri }}"
+          execution_role_arn = "${{ secrets.EXECUTION_ROLE_ARN }}"
+          task_role_arn      = "${{ secrets.TASK_ROLE_ARN }}"
+          app_keys           = "${{ secrets.APP_KEYS }}"
+          jwt_secret         = "${{ secrets.JWT_SECRET }}"
+          admin_jwt_secret   = "${{ secrets.ADMIN_JWT_SECRET }}"
+          api_token_salt     = "${{ secrets.API_TOKEN_SALT }}"
+          EOF
+
+      - name: Terraform Plan
+        if: ${{ inputs.action == 'apply' }}
+        run: terraform plan
+
+      - name: Terraform Apply
+        if: ${{ inputs.action == 'apply' }}
+        run: terraform apply -auto-approve
+
+      - name: Terraform Destroy
+        if: ${{ inputs.action == 'destroy' }}
+        run: terraform destroy -auto-approve
