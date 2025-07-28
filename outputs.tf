@@ -10,7 +10,7 @@ output "cloudwatch_log_group_name" {
 
 output "cloudwatch_dashboard_url" {
   description = "CloudWatch dashboard URL"
-  value       = "https://${var.AWS_REGION}.console.aws.amazon.com/cloudwatch/home?region=${var.AWS_REGION}#dashboards:name=rohana-strapi-dashboard"
+  value       = "https://${var.region}.console.aws.amazon.com/cloudwatch/home?region=${var.region}#dashboards:name=rohana-strapi-dashboard"
 }
 
 output "cpu_alarm_name" {
