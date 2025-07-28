@@ -82,3 +82,7 @@ jobs:
           TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
           TF_VAR_app_keys: ${{ secrets.APP_KEYS }}
           TF_VAR_api_token_salt: ${{ secrets.API_TOKEN_SALT }}
+          TF_VAR_container_image: "dummy"  # ✅ dummy image to pass validation
+          TF_VAR_execution_role_arn: ${{ secrets.EXECUTION_ROLE_ARN }}
+          TF_VAR_task_role_arn: ${{ secrets.TASK_ROLE_ARN }}
+
