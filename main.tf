@@ -19,10 +19,12 @@ data "aws_subnet" "all" {
 }
 
 locals {
+  # Group subnets by AZ and collect only one subnet per AZ (to avoid duplicates)
   subnet_az_map = {
-    for id, subnet in data.aws_subnet.all : subnet.availability_zone => id
+    for subnet in data.aws_subnet.all :
+    subnet.availability_zone => subnet.id...
   }
-  subnet_ids = slice(values(local.subnet_az_map), 0, 2)
+  subnet_ids = slice(flatten(values(local.subnet_az_map)), 0, 2)
 }
 
 resource "aws_ecs_cluster" "strapi" {
