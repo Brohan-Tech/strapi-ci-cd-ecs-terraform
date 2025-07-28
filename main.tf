@@ -2,6 +2,7 @@ provider "aws" {
   region = var.aws_region
 }
 
+# 🧠 Get default VPC and subnets
 data "aws_vpc" "default" {
   default = true
 }
@@ -18,15 +19,15 @@ data "aws_subnet" "all" {
   id       = each.key
 }
 
-# 🛠️ Filter only one subnet per AZ (required for ALB)
+# ✅ Select max 2 subnets from different AZs
 locals {
   unique_subnets_by_az = {
-    for subnet in data.aws_subnet.all :
-    subnet.availability_zone => subnet.id
-    if !(subnet.availability_zone in keys({ for s in data.aws_subnet.all : s.availability_zone => s.id }))
+    for az, subnet in {
+      for s in data.aws_subnet.all : s.availability_zone => s
+    } : az => subnet.id
   }
 
-  subnet_ids = slice(values(local.unique_subnets_by_az), 0, 2) # max 2 subnets in different AZs
+  subnet_ids = slice(values(local.unique_subnets_by_az), 0, 2)
 }
 
 resource "aws_ecs_cluster" "strapi" {
