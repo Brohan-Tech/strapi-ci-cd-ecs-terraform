@@ -12,17 +12,20 @@ on:
           - apply
           - destroy
       image_tag:
-        description: 'Git SHA image tag (optional if using latest commit)'
+        description: 'Git SHA image tag (optional)'
         required: false
 
 env:
   AWS_REGION: us-east-2
-  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_REPOSITORY: rohana-strapi-repo
+  VPC_ID: vpc-0ee59f79963ca2b06
+  SUBNET_IDS: '["subnet-04351d9d8a76a3567", "subnet-0a45b9f55f7cfc3f2"]'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,11 +40,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set IMAGE_URI using Git SHA or input tag
+      - name: Determine Image URI
         if: ${{ github.event.inputs.action == 'apply' }}
         run: |
           IMAGE_TAG=${{ github.event.inputs.image_tag || github.sha }}
-          echo "IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}" >> $GITHUB_ENV
+          IMAGE_URI="${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
       - name: Terraform Init
         run: terraform init
@@ -56,15 +60,15 @@ jobs:
           ADMIN_JWT_SECRET: ${{ secrets.ADMIN_JWT_SECRET }}
           API_TOKEN_SALT: ${{ secrets.API_TOKEN_SALT }}
         run: |
-          echo 'container_image = "${IMAGE_URI}"' > image.auto.tfvars
+          echo 'container_image = "'${IMAGE_URI}'"' > image.auto.tfvars
           echo 'execution_role_arn = "${EXECUTION_ROLE_ARN}"' >> image.auto.tfvars
           echo 'task_role_arn = "${TASK_ROLE_ARN}"' >> image.auto.tfvars
           echo 'app_keys = "${APP_KEYS}"' >> image.auto.tfvars
           echo 'jwt_secret = "${JWT_SECRET}"' >> image.auto.tfvars
           echo 'admin_jwt_secret = "${ADMIN_JWT_SECRET}"' >> image.auto.tfvars
           echo 'api_token_salt = "${API_TOKEN_SALT}"' >> image.auto.tfvars
-          echo 'vpc_id = "vpc-0ee59f79963ca2b06"' >> image.auto.tfvars
-          echo 'subnet_ids = ["subnet-04351d9d8a76a3567", "subnet-0a45b9f55f7cfc3f2"]' >> image.auto.tfvars
+          echo 'vpc_id = "${{ env.VPC_ID }}"' >> image.auto.tfvars
+          echo 'subnet_ids = ${SUBNET_IDS}' >> image.auto.tfvars
 
       - name: Terraform Plan
         if: ${{ github.event.inputs.action == 'apply' }}

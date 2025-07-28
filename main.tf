@@ -1,10 +1,10 @@
 provider "aws" {
-  region = var.region
+  region = var.aws_region
 }
 
 locals {
-  vpc_id     = "vpc-0ee59f79963ca2b06"
-  subnet_ids = ["subnet-04351d9d8a76a3567", "subnet-0a45b9f55f7cfc3f2"]
+  vpc_id     = var.vpc_id
+  subnet_ids = var.subnet_ids
 }
 
 resource "aws_ecs_cluster" "strapi" {
@@ -25,32 +25,28 @@ resource "aws_ecs_task_definition" "strapi" {
   execution_role_arn      = var.execution_role_arn
   task_role_arn           = var.task_role_arn
 
-  container_definitions = jsonencode([
-    {
-      name      = "strapi"
-      image     = var.container_image
-      portMappings = [
-        {
-          containerPort = 1337
-          hostPort      = 1337
-        }
-      ]
-      environment = [
-        { name = "APP_KEYS", value = var.app_keys },
-        { name = "API_TOKEN_SALT", value = var.api_token_salt },
-        { name = "ADMIN_JWT_SECRET", value = var.admin_jwt_secret },
-        { name = "JWT_SECRET", value = var.jwt_secret }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.strapi.name
-          awslogs-region        = var.region
-          awslogs-stream-prefix = "ecs"
-        }
+  container_definitions = jsonencode([{
+    name      = "strapi"
+    image     = var.image_uri  # ✅ Fixed here
+    portMappings = [{
+      containerPort = 1337
+      hostPort      = 1337
+    }]
+    environment = [
+      { name = "APP_KEYS", value = var.app_keys },
+      { name = "API_TOKEN_SALT", value = var.api_token_salt },
+      { name = "ADMIN_JWT_SECRET", value = var.admin_jwt_secret },
+      { name = "JWT_SECRET", value = var.jwt_secret }
+    ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.strapi.name
+        awslogs-region        = var.aws_region
+        awslogs-stream-prefix = "ecs"
       }
     }
-  ])
+  }])
 }
 
 resource "aws_security_group" "alb_sg" {
