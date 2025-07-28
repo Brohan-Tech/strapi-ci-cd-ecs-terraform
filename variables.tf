@@ -1,56 +1,67 @@
 variable "aws_access_key" {
-  description = "AWS access key"
+  description = "AWS Access Key"
   type        = string
+  sensitive   = true
 }
 
 variable "aws_secret_key" {
-  description = "AWS secret key"
+  description = "AWS Secret Key"
   type        = string
+  sensitive   = true
 }
 
-variable "region" {
-  description = "AWS region"
+variable "aws_region" {
+  description = "AWS Region"
   type        = string
-  default     = "us-east-2"
+  default     = "ap-south-1"
 }
 
-variable "container_image" {
-  description = "ECR container image URI"
+variable "image_uri" {
+  description = "Docker image URI for Strapi"
   type        = string
 }
 
 variable "subnet_ids" {
-  description = "List of subnet IDs for ECS service"
+  description = "List of Subnet IDs for ECS Tasks"
   type        = list(string)
 }
 
+variable "vpc_id" {
+  description = "VPC ID for the ALB"
+  type        = string
+}
+
 variable "execution_role_arn" {
-  description = "ECS Task Execution Role ARN"
+  description = "ARN of the ECS Task Execution Role"
   type        = string
 }
 
 variable "task_role_arn" {
-  description = "ECS Task Role ARN"
+  description = "ARN of the ECS Task Role"
   type        = string
 }
 
 variable "app_keys" {
-  description = "APP_KEYS secret for Strapi"
+  description = "Strapi APP_KEYS"
   type        = string
-}
-
-variable "jwt_secret" {
-  description = "JWT_SECRET for Strapi"
-  type        = string
-}
-
-variable "admin_jwt_secret" {
-  description = "ADMIN_JWT_SECRET for Strapi"
-  type        = string
+  sensitive   = true
 }
 
 variable "api_token_salt" {
-  description = "API_TOKEN_SALT for Strapi"
+  description = "Strapi API_TOKEN_SALT"
   type        = string
+  sensitive   = true
+}
+
+variable "admin_jwt_secret" {
+  description = "Strapi ADMIN_JWT_SECRET"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "Strapi JWT_SECRET"
+  type        = string
+  sensitive   = true
 }
 
