@@ -13,16 +13,16 @@ data "aws_subnets" "default" {
   }
 }
 
+data "aws_subnet" "all" {
+  for_each = toset(data.aws_subnets.default.ids)
+  id       = each.key
+}
+
 locals {
-  subnet_ids = slice(distinct(data.aws_subnets.default.ids), 0, 2)
-}
-
-data "aws_subnet" "first" {
-  id = local.subnet_ids[0]
-}
-
-data "aws_subnet" "second" {
-  id = local.subnet_ids[1]
+  subnet_az_map = {
+    for id, subnet in data.aws_subnet.all : subnet.availability_zone => id
+  }
+  subnet_ids = slice(values(local.subnet_az_map), 0, 2)
 }
 
 resource "aws_ecs_cluster" "strapi" {
