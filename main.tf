@@ -32,6 +32,12 @@ resource "aws_ecs_task_definition" "rohana_strapi_task" {
           protocol      = "tcp"
         }
       ]
+      environment = [
+        { name = "APP_KEYS",          value = var.app_keys },
+        { name = "ADMIN_JWT_SECRET", value = var.admin_jwt_secret },
+        { name = "JWT_SECRET",        value = var.jwt_secret },
+        { name = "API_TOKEN_SALT",    value = var.api_token_salt }
+      ] 
       logConfiguration = {
         logDriver = "awslogs"
         options = {

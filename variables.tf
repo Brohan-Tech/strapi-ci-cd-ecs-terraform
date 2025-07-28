@@ -1,15 +1,39 @@
 variable "container_image" {
-  description = "The Docker image to use for the Strapi container"
+  description = "The Docker image for the Strapi container"
   type        = string
 }
 
 variable "execution_role_arn" {
-  description = "IAM role ARN for ECS task execution"
+  description = "ARN of the ECS task execution role"
   type        = string
 }
 
 variable "task_role_arn" {
-  description = "IAM role ARN for the ECS task role"
+  description = "ARN of the ECS task role"
   type        = string
+}
+
+variable "app_keys" {
+  description = "Strapi APP_KEYS environment variable"
+  type        = string
+  sensitive   = true
+}
+
+variable "admin_jwt_secret" {
+  description = "Strapi ADMIN_JWT_SECRET environment variable"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "Strapi JWT_SECRET environment variable"
+  type        = string
+  sensitive   = true
+}
+
+variable "api_token_salt" {
+  description = "Strapi API_TOKEN_SALT environment variable"
+  type        = string
+  sensitive   = true
 }
 
