@@ -1,24 +1,15 @@
 output "strapi_url" {
-  value       = "http://${aws_lb.rohana_strapi_alb.dns_name}"
-  description = "Public URL of the deployed Strapi application"
+  description = "Public URL of the Strapi application"
+  value       = aws_lb.rohana_strapi_alb.dns_name
+}
+
+output "task_definition_arn" {
+  description = "ARN of the ECS Task Definition"
+  value       = aws_ecs_task_definition.rohana_strapi_task.arn
 }
 
 output "ecs_service_name" {
+  description = "Name of the ECS service"
   value       = aws_ecs_service.rohana_strapi_service.name
-  description = "ECS service name"
 }
 
-output "ecs_cluster_name" {
-  value       = aws_ecs_cluster.rohana_strapi_cluster.name
-  description = "ECS cluster name"
-}
-
-output "alb_dns" {
-  value       = aws_lb.rohana_strapi_alb.dns_name
-  description = "ALB DNS name"
-}
-
-output "cloudwatch_log_group" {
-  value       = aws_cloudwatch_log_group.rohana_strapi_logs.name
-  description = "CloudWatch log group name"
-}
