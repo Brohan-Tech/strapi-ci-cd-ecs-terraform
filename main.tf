@@ -18,13 +18,15 @@ data "aws_subnet" "all" {
   id       = each.key
 }
 
+# 🛠️ Filter only one subnet per AZ (required for ALB)
 locals {
-  # Group subnets by AZ and collect only one subnet per AZ (to avoid duplicates)
-  subnet_az_map = {
+  unique_subnets_by_az = {
     for subnet in data.aws_subnet.all :
-    subnet.availability_zone => subnet.id...
+    subnet.availability_zone => subnet.id
+    if !(subnet.availability_zone in keys({ for s in data.aws_subnet.all : s.availability_zone => s.id }))
   }
-  subnet_ids = slice(flatten(values(local.subnet_az_map)), 0, 2)
+
+  subnet_ids = slice(values(local.unique_subnets_by_az), 0, 2) # max 2 subnets in different AZs
 }
 
 resource "aws_ecs_cluster" "strapi" {
