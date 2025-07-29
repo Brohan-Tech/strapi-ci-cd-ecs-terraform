@@ -39,5 +39,6 @@ jobs:
           docker push ${{ env.IMAGE_URI }}
 
       - name: Output Image URI
-        run: echo "Image pushed to: ${{ env.IMAGE_URI }}"
+        run: |
+          echo "Image pushed to: ${{ env.IMAGE_URI }}"
 
