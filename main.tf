@@ -37,7 +37,7 @@ resource "aws_ecs_task_definition" "rohana_strapi_task" {
         { name = "ADMIN_JWT_SECRET", value = var.admin_jwt_secret },
         { name = "JWT_SECRET",        value = var.jwt_secret },
         { name = "API_TOKEN_SALT",    value = var.api_token_salt }
-      ] 
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -55,7 +55,7 @@ resource "aws_ecs_service" "rohana_strapi_service" {
   cluster         = aws_ecs_cluster.rohana_strapi_cluster.id
   task_definition = aws_ecs_task_definition.rohana_strapi_task.arn
   desired_count   = 1
-   
+
   capacity_provider_strategy {
     capacity_provider = "FARGATE_SPOT"
     weight            = 1
@@ -87,12 +87,33 @@ resource "aws_security_group" "rohana_strapi_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-   ingress {
+  ingress {
     from_port       = 1337
     to_port         = 1337
     protocol        = "tcp"
-    security_groups = [aws_security_group.rohana_strapi_sg.id]
+    security_groups = [aws_security_group.rohana_alb_sg.id]
     description     = "Allow ALB to access ECS task on port 1337"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "rohana_alb_sg" {
+  name        = "rohana-alb-sg"
+  description = "Allow inbound HTTP from the internet"
+  vpc_id      = "vpc-06ba36bca6b59f95e"
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow HTTP traffic from the internet"
   }
 
   egress {
@@ -107,7 +128,7 @@ resource "aws_lb" "rohana_strapi_alb" {
   name               = "rohana-strapi-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.rohana_strapi_sg.id]
+  security_groups    = [aws_security_group.rohana_alb_sg.id]
   subnets            = ["subnet-0a1e6640cafebb652", "subnet-0f768008c6324831f"]
 }
 
