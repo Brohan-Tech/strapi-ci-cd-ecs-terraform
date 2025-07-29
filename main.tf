@@ -55,7 +55,11 @@ resource "aws_ecs_service" "rohana_strapi_service" {
   cluster         = aws_ecs_cluster.rohana_strapi_cluster.id
   task_definition = aws_ecs_task_definition.rohana_strapi_task.arn
   desired_count   = 1
-  launch_type     = "FARGATE"
+   
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight            = 1
+  }
 
   network_configuration {
     subnets         = ["subnet-0a1e6640cafebb652", "subnet-0f768008c6324831f"]
@@ -81,6 +85,14 @@ resource "aws_security_group" "rohana_strapi_sg" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+   ingress {
+    from_port       = 1337
+    to_port         = 1337
+    protocol        = "tcp"
+    security_groups = [aws_security_group.rohana_alb_sg.id]
+    description     = "Allow ALB to access ECS task on port 1337"
   }
 
   egress {
