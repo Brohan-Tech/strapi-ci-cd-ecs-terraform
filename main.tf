@@ -91,7 +91,7 @@ resource "aws_security_group" "rohana_strapi_sg" {
     from_port       = 1337
     to_port         = 1337
     protocol        = "tcp"
-    security_groups = [aws_security_group.rohana_alb_sg.id]
+    security_groups = [aws_security_group.rohana_strapi_sg.id]
     description     = "Allow ALB to access ECS task on port 1337"
   }
 

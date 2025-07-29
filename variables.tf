@@ -1,3 +1,8 @@
+variable "container_image" {
+  description = "Docker image URI for ECS task"
+  type        = string
+}
+
 variable "execution_role_arn" {
   description = "ARN of the ECS task execution role"
   type        = string
