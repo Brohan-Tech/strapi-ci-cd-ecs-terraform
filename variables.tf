@@ -1,8 +1,3 @@
-variable "container_image" {
-  description = "The Docker image for the Strapi container"
-  type        = string
-}
-
 variable "execution_role_arn" {
   description = "ARN of the ECS task execution role"
   type        = string

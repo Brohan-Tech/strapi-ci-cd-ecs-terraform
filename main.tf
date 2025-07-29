@@ -23,7 +23,7 @@ resource "aws_ecs_task_definition" "rohana_strapi_task" {
   container_definitions = jsonencode([
     {
       name      = "rohana-strapi"
-      image     = var.container_image
+      image     = "607700977843.dkr.ecr.us-east-2.amazonaws.com/rohana-strapi-repo:latest"
       essential = true
       portMappings = [
         {
