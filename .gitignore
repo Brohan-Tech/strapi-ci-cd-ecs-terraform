@@ -1,0 +1,43 @@
+# Node modules
+node_modules/
+.cache/
+build/
+dist/
+.tmp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor folders
+.vscode/
+.idea/
+
+# Strapi auto-generated files
+.strapi-updater.json
+
+# Docker
+*.local
+docker-compose.override.yml
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+crash.log
+
+# Misc
+*.swp
+*.swo
+
