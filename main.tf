@@ -62,7 +62,7 @@ resource "aws_ecs_service" "rohana_strapi_service" {
   }
 
   network_configuration {
-    subnets         = ["subnet-0a1e6640cafebb652", "subnet-0f768008c6324831f"]
+    subnets         = ["subnet-072721ffbe8579f0b", "subnet-0912ce6f607bb6e66"]
     security_groups = [aws_security_group.rohana_strapi_sg.id]
     assign_public_ip = true
   }
@@ -129,7 +129,7 @@ resource "aws_lb" "rohana_strapi_alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.rohana_alb_sg.id]
-  subnets            = ["subnet-01f75f90550b9166a", "subnet-0912ce6f607bb6e66"]
+  subnets            = ["subnet-072721ffbe8579f0b", "subnet-0912ce6f607bb6e66"]
 }
 
 resource "aws_lb_target_group" "rohana_strapi_tg" {
