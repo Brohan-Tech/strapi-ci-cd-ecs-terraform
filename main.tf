@@ -78,7 +78,7 @@ resource "aws_ecs_service" "rohana_strapi_service" {
 resource "aws_security_group" "rohana_strapi_sg" {
   name        = "rohana-strapi-sg"
   description = "Allow HTTP"
-  vpc_id      = "vpc-06ba36bca6b59f95e"
+  vpc_id      = "vpc-087603ed98f7d20c6"
 
   ingress {
     from_port   = 80
